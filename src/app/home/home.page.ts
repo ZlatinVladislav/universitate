@@ -1,8 +1,6 @@
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonGrid, IonInput, IonCol, IonRow, IonLabel, IonCheckbox, IonList, IonItem } from '@ionic/angular/standalone';
-import { TodoService } from './todoservice';
-
 @Component({
   selector: 'app-home',
   templateUrl: 'home.page.html',
@@ -21,16 +19,9 @@ export class HomePage {
   newTask = '';
 
 
-  constructor(public todoService: TodoService) { }
+  constructor() { }
   changeColor() {
     document.documentElement.style.setProperty('--ion-color-primary', 'red')
-  }
-
-  addTodo(): void {
-    if (this.newTask.trim()) {
-      this.todoService.addTodo(this.newTask.trim());
-      this.newTask = '';
-    }
   }
 
   click(val: any) {

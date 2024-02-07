@@ -1,63 +1,61 @@
 import { Injectable } from '@angular/core';
+import * as localForage from 'localforage';
 
-export interface Todo {
+interface Todo {
     id: number;
     task: string;
     completed: boolean;
 }
 
+localForage.config({
+    driver: localForage.INDEXEDDB, // Force IndexedDB; this will use IndexedDB or nothing
+    name: 'myApp',
+    storeName: 'myStore' // Should be alphanumeric, with underscores.
+});
+
+
 @Injectable({
-    providedIn: 'root',
+    providedIn: 'root'
 })
 export class TodoService {
-    private todos: Todo[] = [
-        {
-            "id": 1,
-            "task": "1",
-            "completed": false
-        },
-        {
-            "id": 2,
-            "task": "2",
-            "completed": false
-        },
-        {
-            "id": 3,
-            "task": "3",
-            "completed": false
-        },
-        {
-            "id": 4,
-            "task": "4",
-            "completed": false
-        },
-        {
-            "id": 5,
-            "task": "5",
-            "completed": false
-        }
-    ];
-    private currentId = 1;
+    private todos: Todo[] = [];
+    private idCounter = 1;
 
-    constructor() { }
+    constructor() {
+        this.loadTodos();
+    }
+
+    async loadTodos(): Promise<void> {
+        const storedTodos = await localForage.getItem<Todo[]>('todos');
+        if (storedTodos) {
+            this.todos = storedTodos;
+            this.idCounter = this.todos.length > 0 ? Math.max(...this.todos.map(todo => todo.id)) + 1 : 1;
+        }
+    }
+
+    async saveTodos(): Promise<void> {
+        await localForage.setItem('todos', this.todos);
+    }
 
     getAllTodos(): Todo[] {
-        console.log(this.todos)
         return this.todos;
     }
 
-    addTodo(task: string): void {
-        this.todos.push({ id: this.currentId++, task, completed: false });
+    async addTodo(task: string): Promise<void> {
+        this.todos.push({ id: this.idCounter++, task: task, completed: false });
+        await this.saveTodos();
     }
 
-    removeTodo(id: number): void {
+    async removeTodo(id: number): Promise<void> {
         this.todos = this.todos.filter(todo => todo.id !== id);
+        await this.saveTodos();
     }
 
-    toggleCompletion(id: number): void {
+    async toggleCompletion(id: number): Promise<void> {
         const todo = this.todos.find(todo => todo.id === id);
         if (todo) {
             todo.completed = !todo.completed;
+            await this.saveTodos();
         }
     }
 }
